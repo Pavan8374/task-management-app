@@ -1,0 +1,407 @@
+﻿/* ~/css/auth.css */
+
+/* --- Global & Body --- */
+/*body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f2f5;*/ /* Light gray background for contrast with the card */
+    /*color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;*/ /* Align to top if content is long */
+    /*min-height: 100vh;
+    box-sizing: border-box;
+    line-height: 1.6;
+}*/
+
+/* --- Auth Container & Card --- */
+.auth-container {
+    width: 100%; /* Will take full width of its alignment context from body */
+    max-width: 550px;
+    /* margin-top: 30px;       -- These can be combined with auto */
+    /* margin-bottom: 30px;    -- These can be combined with auto */
+    margin: 30px auto; /* Top/bottom 30px, left/right auto for centering */
+    /* If the body's align-items: center and justify-content: center don't achieve what you want
+       (e.g. if _Layout.cshtml adds wrappers), margin: 30px auto; is the fallback for .auth-container itself.
+       However, with body as a flex container set to center, explicit auto margins on the child might not
+       even be strictly necessary for horizontal centering but add robustness.
+    */
+    /* The rest of your .auth-container styles like padding, background, etc. */
+    /* For example, if you removed padding from body, you might add it here or to .auth-card */
+}
+
+.auth-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 35px 40px; /* This internal padding is important */
+    overflow: hidden;
+    width: 100%; /* Make card take full width of .auth-container */
+    box-sizing: border-box;
+}
+
+.register-card {
+    /* Specific styles for register card if needed, otherwise inherits from auth-card */
+}
+
+/* --- Auth Header --- */
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #eef2ff; /* Light primary color background */
+    color: #4f46e5; /* Primary color */
+    margin-bottom: 15px;
+}
+
+    .auth-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+.auth-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    font-size: 15px;
+    color: #6b7280;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+/* --- Error Summary --- */
+.error-summary {
+    background-color: #fee2e2; /* Light red */
+    border: 1px solid #fecaca; /* Slightly darker red */
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.error-icon {
+    font-size: 20px;
+    margin-right: 12px;
+    color: #ef4444; /* Red */
+}
+
+.error-content p {
+    margin: 0 0 5px 0;
+    color: #b91c1c; /* Darker red for text */
+    font-size: 14px;
+}
+
+    .error-content p:last-child {
+        margin-bottom: 0;
+    }
+
+
+/* --- Auth Form & Groups --- */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+    .form-row .form-group {
+        flex: 1; /* Each group takes equal width in a row */
+    }
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+    .input-wrapper .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af; /* Muted icon color */
+        pointer-events: none; /* So it doesn't block input focus */
+    }
+
+.form-input {
+    width: 100%;
+    padding: 12px 14px 12px 42px; /* Left padding for icon */
+    border: 1px solid #d1d5db; /* Gray border */
+    border-radius: 8px;
+    font-size: 15px;
+    color: #1f2937;
+    background-color: #f9fafb;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+    .form-input:focus {
+        outline: none;
+        border-color: #4f46e5; /* Primary color focus */
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+        .form-input:focus + .input-icon,
+        .input-wrapper:focus-within .input-icon { /* For when input inside wrapper is focused */
+            color: #4f46e5;
+        }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+.field-validation-error {
+    font-size: 13px;
+    color: #ef4444; /* Red for errors */
+    margin-top: 6px;
+}
+
+/* --- Password Specifics --- */
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+    .password-toggle:hover {
+        color: #4f46e5;
+    }
+
+    .password-toggle svg {
+        width: 20px;
+        height: 20px;
+    }
+
+.password-strength {
+    margin-top: 8px;
+}
+
+.strength-bars {
+    display: flex;
+    gap: 4px;
+    height: 6px;
+    margin-bottom: 6px;
+}
+
+.strength-bar {
+    flex: 1;
+    background-color: #e5e7eb; /* Default bar color (gray) */
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+/* Active states will be handled by JS inline styles based on colors array */
+
+.strength-text {
+    font-size: 12px;
+    color: #6b7280; /* Default text color */
+}
+
+/* --- Form Options (Checkbox) --- */
+.form-options {
+    margin-top: 5px; /* Adjust spacing if needed */
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #4b5563;
+    cursor: pointer;
+    user-select: none; /* Prevent text selection on click */
+}
+
+    .checkbox-label input[type="checkbox"] {
+        opacity: 0; /* Hide default checkbox */
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+
+.checkmark {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    margin-right: 10px;
+    background-color: #f9fafb;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background-color: #4f46e5; /* Primary color when checked */
+    border-color: #4f46e5;
+}
+
+.checkmark::after { /* The tick mark */
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    display: block;
+}
+
+.checkbox-label .terms-link {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .checkbox-label .terms-link:hover {
+        text-decoration: underline;
+    }
+
+/* --- Button --- */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #4f46e5 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* For loader positioning */
+    min-height: 48px; /* To maintain height when text is replaced by spinner */
+}
+
+    .btn-primary:hover {
+        opacity: 0.9;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary:disabled {
+        background: #9ca3af; /* Muted background for disabled state */
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+.btn-text {
+    transition: opacity 0.2s ease;
+}
+
+.btn-loader {
+    display: flex; /* Will be set by JS */
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Auth Footer --- */
+.auth-footer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+    .auth-footer .auth-link {
+        color: #4f46e5; /* Primary color */
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .auth-footer .auth-link:hover {
+            text-decoration: underline;
+        }
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 600px) {
+    .auth-container {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .auth-card {
+        padding: 25px 20px;
+        border-radius: 12px;
+    }
+
+    .form-row {
+        flex-direction: column; /* Stack first name and last name on small screens */
+        gap: 20px; /* Maintain gap when stacked */
+    }
+
+    .auth-title {
+        font-size: 22px;
+    }
+
+    .auth-subtitle {
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        padding: 12px 15px;
+        font-size: 15px;
+    }
+}

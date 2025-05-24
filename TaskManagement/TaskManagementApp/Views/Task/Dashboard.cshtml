@@ -1,0 +1,221 @@
+﻿@using TaskManagementApp.Models.DashBoard
+<!-- Views/Task/Dashboard.cshtml -->
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Task Management Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-primary mb-0">
+                    <i class="fas fa-tasks me-2"></i>Task Management Dashboard
+                </h2>
+                <a href="@Url.Action("Create", "Task")" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add New Task
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalTasks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CompletedTasks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">In Progress</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.InProgressTasks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Overdue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OverdueTasks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+                        <i class="fas fa-filter me-1"></i>Toggle Filters
+                    </button>
+                </div>
+                <div class="collapse show" id="filtersCollapse">
+                    <div class="card-body">
+                        <form id="filterForm">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="statusFilter" class="form-label">Status</label>
+                                    <select class="form-select" id="statusFilter" name="status">
+                                        <option value="">All Status</option>
+                                        @foreach (var status in Model.StatusOptions)
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="priorityFilter" class="form-label">Priority</label>
+                                    <select class="form-select" id="priorityFilter" name="priority">
+                                        <option value="">All Priorities</option>
+                                        @foreach (var priority in Model.PriorityOptions)
+                                        {
+                                            <option value="@priority">@priority</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="searchInput" class="form-label">Search Tasks</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="searchInput" name="searchTerm" placeholder="Search by title or description...">
+                                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-secondary w-100" id="clearFiltersBtn">
+                                        <i class="fas fa-times me-1"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Tasks</h6>
+                    <div class="d-flex align-items-center">
+                        <select class="form-select form-select-sm me-2" id="sortBy" style="width: auto;">
+                            <option value="dueDate">Sort by Due Date</option>
+                            <option value="priority">Sort by Priority</option>
+                            <option value="status">Sort by Status</option>
+                            <option value="title">Sort by Title</option>
+                        </select>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="gridViewBtn">
+                                <i class="fas fa-th me-1"></i>Grid
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary active" id="listViewBtn">
+                                <i class="fas fa-list me-1"></i>List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Loading indicator -->
+                    <div id="loadingIndicator" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading tasks...</p>
+                    </div>
+
+                    <!-- Grid View (Cards in columns) -->
+                    <div id="gridView" style="display: none;">
+                        <div class="row" id="tasksGridContainer">
+                            <!-- Task cards will be loaded here via AJAX -->
+                        </div>
+                    </div>
+
+                    <!-- List View (Cards in single column) -->
+                    <div id="listView">
+                        <div id="tasksListContainer">
+                            <!-- Task cards will be loaded here via AJAX -->
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Tasks pagination" id="tasksPagination" style="display: none;">
+                        <ul class="pagination justify-content-center" id="paginationList">
+                            <!-- Pagination items will be generated here -->
+                        </ul>
+                    </nav>
+
+                    <!-- No tasks message -->
+                    <div id="noTasksMessage" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No tasks found</h5>
+                        <p class="text-muted">Create your first task to get started!</p>
+                        <a href="@Url.Action("Create", "Task")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add New Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+        @* @RenderSection("Styles", required: false) *@
+}
+
+@section Scripts {
+    <script src="~/js/task-dashboard.js"></script>
+}

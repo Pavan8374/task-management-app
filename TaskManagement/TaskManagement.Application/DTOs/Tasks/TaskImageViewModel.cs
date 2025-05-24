@@ -1,4 +1,4 @@
-﻿namespace TaskManagementApp.Models.Tasks
+﻿namespace TaskManagement.Application.Tasks
 {
     public class TaskImageViewModel
     {

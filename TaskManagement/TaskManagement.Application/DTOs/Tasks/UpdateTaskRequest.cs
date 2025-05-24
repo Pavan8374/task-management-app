@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TaskManagementApp.Models.Tasks
+namespace TaskManagement.Application.DTOs.Tasks
 {
-    public class TaskViewModel
+    public class UpdateTaskRequest
     {
         public int Id { get; set; }
 
@@ -20,18 +20,6 @@ namespace TaskManagementApp.Models.Tasks
         public string TaskPriority { get; set; }
 
         [Required(ErrorMessage = "Due date is required")]
-        [DataType(DataType.DateTime)]
-        [Display(Name = "Due Date")]
         public DateTime DueDate { get; set; }
-
-        public int UserId { get; set; }
-        public bool IsDeleted { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? ModifiedAt { get; set; }
-
-        // Navigation properties
-        public string UserName { get; set; }
-        public List<TaskImageViewModel> TaskImages { get; set; } = new List<TaskImageViewModel>();
     }
 }

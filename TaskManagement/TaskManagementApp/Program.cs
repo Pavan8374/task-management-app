@@ -54,10 +54,10 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.UseMiddleware<RoleBasedRedirectMiddleware>();
+//app.UseMiddleware<RoleBasedRedirectMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Task}/{action=Dashboard}");
 
 app.Run();

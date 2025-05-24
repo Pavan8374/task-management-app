@@ -4,7 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using TaskManagement.Application.Authentication;
+using TaskManagement.Application.DTOs.Auth;
+using TaskManagement.Application.Services;
 using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Identity
@@ -22,7 +23,7 @@ namespace TaskManagement.Infrastructure.Identity
             _userManager = userManager;
             _jwtSettings = jwtOptions.Value;
         }
-        public async Task<AuthResponse> LoginAsync(AuthRequest request)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
@@ -39,7 +40,36 @@ namespace TaskManagement.Infrastructure.Identity
             {
                 Token = token,
                 Email = user.Email,
-                Roles = roles
+                Role = roles.FirstOrDefault()
+            };
+        }
+
+        public async Task<AuthResponse> SignUpAsync(SignUpRequest request)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if(existingUser != null)
+                throw new UnauthorizedAccessException("An account found with this email already!");
+
+            var user = new ApplicationUser()
+            {
+                UserName = request.Email.Split('@')[0],
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.LastName,
+            };
+
+            await _userManager.CreateAsync(user, request.Password);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var token = GenerateJwtToken(user.Email, user.Id, $"{user.FirstName} {user.LastName}", roles.FirstOrDefault());
+
+            return new AuthResponse
+            {
+                Token = token,
+                Email = user.Email,
+                Role = roles.FirstOrDefault()
             };
         }
 

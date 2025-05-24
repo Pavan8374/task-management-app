@@ -1,9 +1,9 @@
-﻿namespace TaskManagement.Application.Authentication
+﻿namespace TaskManagement.Application.DTOs.Auth
 {
     /// <summary>
     /// Auth request model
     /// </summary>
-    public class AuthRequest
+    public class LoginRequest
     {
         /// <summary>
         /// Email

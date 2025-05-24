@@ -1,4 +1,4 @@
-﻿using TaskManagementApp.Models.Tasks;
+﻿using TaskManagement.Application.Tasks;
 
 namespace TaskManagementApp.Models.DashBoard
 {
