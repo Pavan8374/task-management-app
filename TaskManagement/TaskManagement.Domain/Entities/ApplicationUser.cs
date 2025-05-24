@@ -10,12 +10,12 @@ namespace TaskManagement.Domain.Entities
         /// <summary>
         /// First name
         /// </summary>
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = default!;
 
         /// <summary>
         /// Last name
         /// </summary>
-        public string LastName { get; set; }
+        public string LastName { get; set; } = default!;
 
         /// <summary>
         /// Profile image
@@ -25,11 +25,11 @@ namespace TaskManagement.Domain.Entities
         /// <summary>
         /// Is active
         /// </summary>
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = default!;
 
         /// <summary>
         /// Created at date
         /// </summary>
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = default!;
     } 
 }

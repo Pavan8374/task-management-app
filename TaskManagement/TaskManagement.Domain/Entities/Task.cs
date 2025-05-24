@@ -30,6 +30,17 @@
         /// </summary>
         public DateTime DueDate { get; set; }
 
+        /// <summary>
+        /// User identity
+        /// </summary>
+        public int UserId { get; set; }
+
+        /// <summary>
+        /// Is deleted
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
+        public ApplicationUser User { get; set; }
         public List<TaskImage> TaskImages { get; set; }
     }
 }
