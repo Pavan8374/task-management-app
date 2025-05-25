@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="SQLScripts\" />
+    <Compile Include="SQLScripts\TaskCommandsScript.sql" />
   </ItemGroup>
 
   <ItemGroup>

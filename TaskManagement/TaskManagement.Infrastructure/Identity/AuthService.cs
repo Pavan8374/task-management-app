@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaskManagement.Application.DTOs.Auth;
-using TaskManagement.Application.Services;
+using TaskManagement.Application.Interfaces;
 using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Identity
@@ -40,7 +40,11 @@ namespace TaskManagement.Infrastructure.Identity
             {
                 Token = token,
                 Email = user.Email,
-                Role = roles.FirstOrDefault()
+                Role = roles.FirstOrDefault(),
+                UserId = user.Id,
+                FullName = $"{user.FirstName} {user.LastName}",
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
             };
         }
 
@@ -57,9 +61,26 @@ namespace TaskManagement.Infrastructure.Identity
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 PhoneNumber = request.LastName,
+                Email = request.Email
             };
 
-            await _userManager.CreateAsync(user, request.Password);
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                throw new ApplicationException($"User creation failed: {errors}");
+            }
+
+            var defaultRole = "User"; // Or "Customer", etc.
+            if (!await _userManager.IsInRoleAsync(user, defaultRole))
+            {
+                var roleResult = await _userManager.AddToRoleAsync(user, defaultRole);
+                if (!roleResult.Succeeded)
+                {
+                    var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    throw new ApplicationException($"Failed to assign role: {errors}");
+                }
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -69,7 +90,12 @@ namespace TaskManagement.Infrastructure.Identity
             {
                 Token = token,
                 Email = user.Email,
-                Role = roles.FirstOrDefault()
+                Role = roles.FirstOrDefault(),
+                UserId = user.Id,
+                FullName = $"{user.FirstName} {user.LastName}",
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
+                //ValidTo = token.
             };
         }
 
@@ -92,7 +118,7 @@ namespace TaskManagement.Infrastructure.Identity
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
+                expires: DateTime.Now.AddDays(Convert.ToInt64(_jwtSettings.ExpiryDays)),
                 signingCredentials: creds
             );
 

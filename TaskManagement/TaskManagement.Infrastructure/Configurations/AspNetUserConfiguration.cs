@@ -31,6 +31,28 @@ namespace TaskManagement.Infrastructure.Configurations
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("getutcdate()");
+
+            //var hasher = new PasswordHasher<ApplicationUser>();
+
+            var adminUser = new ApplicationUser
+            {
+                Id = 1,
+                UserName = "admin@gmail.com",
+                NormalizedUserName = "ADMIN@GMAIL.COM",
+                Email = "admin@gmail.com",
+                NormalizedEmail = "ADMIN@GMAIL.COM",
+                EmailConfirmed = true,
+                SecurityStamp = "b3bcf22f-a542-4f76-984c-1556917acd06",
+                ConcurrencyStamp = "b3bcf11f-a542-4y76-984c-1856917acd06",
+                FirstName = "Admin",
+                LastName = "System",
+                IsActive = true,
+                ProfileImage = ""
+            };
+
+            adminUser.PasswordHash = "AQAAAAIAAYagAAAAEFg6wl1lE8vSchSiLupOe03w0rP+q3mn7YU9Vv6ljcPQxGSTk/ghreTMEbP8f0E7OQ==";
+
+            builder.HasData(adminUser);
         }
     }
 }

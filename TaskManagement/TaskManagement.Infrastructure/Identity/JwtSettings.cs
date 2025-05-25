@@ -23,6 +23,6 @@
         /// <summary>
         /// Duration in minutes
         /// </summary>
-        public double DurationInMinutes { get; set; }
+        public double ExpiryDays { get; set; }
     }
 }

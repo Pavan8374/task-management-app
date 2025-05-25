@@ -13,6 +13,8 @@ namespace TaskManagementApp.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
+        [Route("")]
         public IActionResult Index()
         {
             return View();

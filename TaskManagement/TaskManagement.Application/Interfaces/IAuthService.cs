@@ -1,6 +1,6 @@
 ﻿using TaskManagement.Application.DTOs.Auth;
 
-namespace TaskManagement.Application.Services
+namespace TaskManagement.Application.Interfaces
 {
     /// <summary>
     /// Auth service interface

@@ -21,7 +21,7 @@ namespace TaskManagement.Infrastructure
         /// <summary>
         /// User details
         /// </summary>
-        public DbSet<ApplicationUser> UserDetails { get; set; }   
+        public DbSet<ApplicationUser> Users { get; set; }   
 
         /// <summary>
         /// Application db context xonstructor

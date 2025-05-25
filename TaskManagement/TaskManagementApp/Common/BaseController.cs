@@ -1,0 +1,79 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System.Security.Claims;
+
+namespace TaskManagementApp.Common
+{
+    public class BaseController : Controller
+    {
+        protected string? CurrentUserEmail => HttpContext.Session.GetString("UserEmail");
+        protected string? CurrentUserRole => HttpContext.Session.GetString("UserRole");
+        protected string? CurrentAuthToken => HttpContext.Session.GetString("AuthToken");
+        protected bool IsAuthenticated => !string.IsNullOrEmpty(CurrentAuthToken);
+
+        protected int GetCurrentUserId()
+        {
+            // First try to get from claims (if JWT authentication is working)
+            var userIdClaim = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int claimUserId))
+            {
+                return claimUserId;
+            }
+
+            // Fallback to session
+            var sessionUserId = HttpContext.Session.GetString("UserId");
+            if (!string.IsNullOrEmpty(sessionUserId) && int.TryParse(sessionUserId, out int sessionUserIdInt))
+            {
+                return sessionUserIdInt;
+            }
+
+            return 0; // or throw an exception if user must be authenticated
+        }
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            // Set common ViewData
+            ViewData["CurrentUserEmail"] = CurrentUserEmail;
+            ViewData["CurrentUserRole"] = CurrentUserRole;
+            ViewData["IsAuthenticated"] = IsAuthenticated;
+
+            base.OnActionExecuting(context);
+        }
+
+        protected IActionResult RedirectToRoleBasedDashboard()
+        {
+            return RoleBasedRoutingHelper.RedirectToRoleBasedDashboard(CurrentUserRole);
+        }
+
+        protected bool HasRole(string role)
+        {
+            return CurrentUserRole?.Equals(role, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        protected bool HasAnyRole(params string[] roles)
+        {
+            return roles.Any(role => HasRole(role));
+        }
+
+        protected IActionResult RequireAuthentication()
+        {
+            if (!IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+            return null; // User is authenticated
+        }
+
+        protected IActionResult RequireRole(params string[] requiredRoles)
+        {
+            var authResult = RequireAuthentication();
+            if (authResult != null) return authResult;
+
+            if (!HasAnyRole(requiredRoles))
+            {
+                return RedirectToRoleBasedDashboard();
+            }
+            return null; // User has required role
+        }
+
+    }
+}
