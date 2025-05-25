@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.DTOs.Tasks;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Models.Tasks;
 using TaskManagement.Application.Tasks;
+using TaskManagement.Domain.Entities;
+using TaskManagement.Domain.Models;
 using TaskManagementApp.Common;
 using TaskManagementApp.Models.DashBoard;
 
@@ -13,10 +15,12 @@ namespace TaskManagementApp.Controllers
     public class TaskController : BaseController
     {
         private readonly ITaskService _taskService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(ITaskService taskService, UserManager<ApplicationUser> userManager)
         {
             _taskService = taskService;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -57,34 +61,41 @@ namespace TaskManagementApp.Controllers
         }
 
         [HttpGet]
-        [Route("GetTasks")]
-        public async Task<IActionResult> GetTasks([FromQuery] TaskFilterRequestModel request)
+        [Route("UserTasks/{userId}")]
+        public async Task<IActionResult> UserTasks(int userId, TaskFilterRequestModel request)
         {
             try
             {
-                //var tasks = GetDummyTasks();
+                // Set default values if not provided
+                request.Page = request.Page == 0 ? 1 : request.Page;
+                request.PageSize = request.PageSize == 0 ? 10 : request.PageSize;
 
-                var result = await _taskService.GetFilteredTasksAsync(GetCurrentUserId(), request);
+                var tasks = await _taskService.GetFilteredTasksAsync(userId, request);
+                var user = await _userManager.FindByIdAsync(userId.ToString()); // Implement this if you don't have it
 
-                var tasks = result.Items;
-
-                return Json(new TaskListResponse
+                var viewModel = new UserTasksViewModel
                 {
-                    Success = true,
-                    Data = tasks,
-                    TotalCount = tasks.Count,
-                    CurrentPage = request?.Page ?? 1,
-                    TotalPages = (int)Math.Ceiling(tasks.Count / (double)(request?.PageSize ?? 10))
-                });
+                    Tasks = tasks,
+                    User = new UserViewModel()
+                    {
+                        Id = user.Id,
+                        UserName = user.UserName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        CreatedAt = user.CreatedAt,
+                        IsActive = user.IsActive,
+                        //ProfileImage = user.ProfileImage
+                    },
+                    CurrentFilter = request
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                return Json(new TaskListResponse
-                {
-                    Success = false,
-                    Message = "Error retrieving tasks",
-                    Errors = new List<string> { ex.Message }
-                });
+                TempData["ErrorMessage"] = "Error loading user tasks: " + ex.Message;
+                return RedirectToAction("Index");
             }
         }
 
@@ -278,6 +289,13 @@ namespace TaskManagementApp.Controllers
                     Errors = new List<string> { ex.Message }
                 });
             }
+        }
+
+        public class UserTasksViewModel
+        {
+            public PagedResult<TaskResponseModel> Tasks { get; set; }
+            public UserViewModel User { get; set; }
+            public TaskFilterRequestModel CurrentFilter { get; set; }
         }
     }
 }

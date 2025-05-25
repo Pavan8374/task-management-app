@@ -74,7 +74,7 @@ namespace TaskManagement.Infrastructure.Repositories
         {
             var stats = await _context.Tasks
                 .AsNoTracking()
-                .Where(t => t.UserId == userId)
+                .Where(t => t.UserId == userId && !t.IsDeleted)
                 .GroupBy(t => 1) // Group all records together
                 .Select(g => new TaskStatsViewModel
                 {

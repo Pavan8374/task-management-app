@@ -1,0 +1,303 @@
+﻿@using static TaskManagementApp.Controllers.TaskController
+@model UserTasksViewModel
+@{
+    ViewData["Title"] = $"{Model.User.UserName}'s Tasks";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .task-card {
+            transition: transform 0.2s;
+            border-left: 4px solid;
+        }
+
+            .task-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+
+        .task-pending {
+            border-left-color: #ffc107;
+        }
+
+        .task-inprogress {
+            border-left-color: #17a2b8;
+        }
+
+        .task-completed {
+            border-left-color: #28a745;
+        }
+
+        .task-overdue {
+            border-left-color: #dc3545;
+        }
+
+        .badge-priority {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+        }
+
+        .priority-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .priority-medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-high {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .priority-critical {
+            background-color: #721c24;
+            color: white;
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tasks me-2"></i>@Model.User.UserName's Tasks
+        </h1>
+        <a href="@Url.Action("Index", "Admin")" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Users
+        </a>
+    </div>
+
+    <!-- User Info Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">User Information</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 text-center">
+                    <img class="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/150x150" height="80" width="80">
+                </div>
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Username:</strong> @Model.User.UserName</p>
+                            <p class="mb-1"><strong>Email:</strong> @Model.User.Email</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Name:</strong> @Model.User.FirstName @Model.User.LastName</p>
+                            <p class="mb-1">
+                                <strong>Status:</strong>
+                                <span class="badge @(Model.User.IsActive ? "bg-success" : "bg-danger")">
+                                    @(Model.User.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Registered:</strong> @Model.User.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            <p class="mb-1"><strong>Total Tasks:</strong> @Model.Tasks.TotalCount</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Task List</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                   data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-file-export me-2"></i>Export Tasks
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filters -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Pending" selected="@(Model.CurrentFilter.Status == "Pending")">Pending</option>
+                        <option value="In Progress" selected="@(Model.CurrentFilter.Status == "In Progress")">In Progress</option>
+                        <option value="Completed" selected="@(Model.CurrentFilter.Status == "Completed")">Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="priorityFilter">
+                        <option value="">All Priorities</option>
+                        <option value="Low" selected="@(Model.CurrentFilter.Priority == "Low")">Low</option>
+                        <option value="Medium" selected="@(Model.CurrentFilter.Priority == "Medium")">Medium</option>
+                        <option value="High" selected="@(Model.CurrentFilter.Priority == "High")">High</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search tasks..."
+                           value="@Model.CurrentFilter.SearchTerm">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" id="applyFilters">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tasks List -->
+            <div class="table-responsive">
+                <table class="table table-hover" id="tasksTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in Model.Tasks.Items)
+                        {
+                            <tr class="task-card task-@task.TaskStatus.ToLower().Replace(" ", "")">
+                                <td>@task.Title</td>
+                                <td>
+                                    <span class="badge bg-status-@task.TaskStatus.ToLower().Replace(" ", "")">
+                                        @task.TaskStatus
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-priority priority-@task.TaskPriority.ToLower()">
+                                        @task.TaskPriority
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (task.DueDate < DateTime.Now && task.TaskStatus != "Completed")
+                                    {
+                                        <span class="text-danger">@task.DueDate.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        @task.DueDate.ToString("MMM dd, yyyy")
+                                    }
+                                </td>
+                                <td>@task.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", "Task", new { id = task.Id })"
+                                           class="btn btn-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Update", "Task", new { id = task.Id })"
+                                           class="btn btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="dataTables_info">
+                        Showing @((Model.Tasks.Page - 1) * Model.Tasks.PageSize + 1) to
+                        @Math.Min(Model.Tasks.Page * Model.Tasks.PageSize, Model.Tasks.TotalCount)
+                        of @Model.Tasks.TotalCount tasks
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <nav class="float-end">
+                        <ul class="pagination">
+                            <li class="page-item @(Model.Tasks.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link" href="@Url.Action("UserTasks", new {
+                                    userId = Model.User.Id,
+                                    page = Model.Tasks.Page - 1,
+                                    pageSize = Model.Tasks.PageSize,
+                                    status = Model.CurrentFilter.Status,
+                                    priority = Model.CurrentFilter.Priority,
+                                    searchTerm = Model.CurrentFilter.SearchTerm
+                                })">Previous</a>
+                            </li>
+
+                            @for (int i = 1; i <= Model.Tasks.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Tasks.Page ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("UserTasks", new {
+                                        userId = Model.User.Id,
+                                        page = i,
+                                        pageSize = Model.Tasks.PageSize,
+                                        status = Model.CurrentFilter.Status,
+                                        priority = Model.CurrentFilter.Priority,
+                                        searchTerm = Model.CurrentFilter.SearchTerm
+                                    })">@i</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.Tasks.HasNextPage ? "" : "disabled")">
+                                <a class="page-link" href="@Url.Action("UserTasks", new {
+                                    userId = Model.User.Id,
+                                    page = Model.Tasks.Page + 1,
+                                    pageSize = Model.Tasks.PageSize,
+                                    status = Model.CurrentFilter.Status,
+                                    priority = Model.CurrentFilter.Priority,
+                                    searchTerm = Model.CurrentFilter.SearchTerm
+                                })">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable with basic functionality
+            $('#tasksTable').DataTable({
+                paging: false,
+                searching: false,
+                info: false,
+                ordering: false
+            });
+
+            // Apply filters button
+            $('#applyFilters').click(function() {
+                const params = {
+                    userId: @Model.User.Id,
+                    page: 1,
+                    pageSize: @Model.Tasks.PageSize,
+                    status: $('#statusFilter').val(),
+                    priority: $('#priorityFilter').val(),
+                    searchTerm: $('#searchInput').val()
+                };
+
+                window.location.href = '@Url.Action("UserTasks")' + '?' + $.param(params);
+            });
+
+            // Make table rows clickable
+            $('#tasksTable tbody tr').click(function() {
+                const taskId = $(this).find('a.btn-info').attr('href').split('=')[1];
+                window.location.href = '@Url.Action("Details", "Task")' + '/' + taskId;
+            }).css('cursor', 'pointer');
+        });
+    </script>
+}

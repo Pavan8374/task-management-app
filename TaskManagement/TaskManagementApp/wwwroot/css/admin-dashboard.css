@@ -510,3 +510,20 @@
     background-color: #007bff;
     border-color: #007bff;
 }
+
+/* Status Badges */
+.bg-status-pending { background-color: #fff3cd; color: #856404; }
+.bg-status-inprogress { background-color: #cce5ff; color: #004085; }
+.bg-status-completed { background-color: #d4edda; color: #155724; }
+.bg-status-overdue { background-color: #f8d7da; color: #721c24; }
+
+/* Task Card Hover Effects */
+.task-card:hover {
+    background-color: #f8f9fa;
+}
+
+/* Priority Badges */
+.priority-low { background-color: #d4edda; color: #155724; }
+.priority-medium { background-color: #fff3cd; color: #856404; }
+.priority-high { background-color: #f8d7da; color: #721c24; }
+.priority-critical { background-color: #721c24; color: white; }
