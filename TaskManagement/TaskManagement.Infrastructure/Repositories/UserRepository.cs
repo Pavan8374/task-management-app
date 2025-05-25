@@ -102,12 +102,28 @@ namespace TaskManagement.Infrastructure.Repositories
             var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
             var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
+            var taskstats = await _context.Tasks
+                .AsNoTracking()
+                .Where(t => !t.IsDeleted)
+                .GroupBy(t => 1) // Group all records together
+                .Select(g => new TaskStatsViewModel
+                {
+                    TotalTasks = g.Count(),
+                    CompletedTasks = g.Count(t => t.TaskStatus == "Completed"),
+                    InProgressTasks = g.Count(t => t.TaskStatus == "In Progress"),
+                    PendingTasks = g.Count(t => t.TaskStatus == "Pending"),
+                    OnHoldTasks = g.Count(t => t.TaskStatus == "On Hold"),
+                    OverdueTasks = g.Count(t => t.DueDate < DateTime.Now && t.TaskStatus != "Completed")
+                })
+                .FirstOrDefaultAsync();
             return new UserStatsModel
             {
                 TotalUsers = await query.CountAsync(),
                 ActiveUsers = await query.Where(u => u.IsActive).CountAsync(),
                 InactiveUsers = await query.Where(u => !u.IsActive).CountAsync(),
-                
+                TotalTasks  = taskstats.TotalTasks,
+                CompletedTasks = taskstats.CompletedTasks,
+                PendingTasks = taskstats.PendingTasks,
             };
         }
 

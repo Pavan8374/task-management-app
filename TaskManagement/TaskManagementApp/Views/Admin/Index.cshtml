@@ -189,26 +189,53 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card h-100 py-2 border-left-info">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                New This Month
+        <div class="row mb-4 animate__animated animate__fadeInUp">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-left-primary shadow h-100 py-2 dashboard-card">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Tasks</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.UserStats.TotalTasks</div>
                             </div>
-                            @* <div class="h5 mb-0 font-weight-bold text-gray-800"> *@
-                            @*     @Model.UserStats.NewUsersThisMonth *@
-                            @* </div> *@
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-left-success shadow h-100 py-2 dashboard-card">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.UserStats.CompletedTasks</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card border-left-info shadow h-100 py-2 dashboard-card">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">In Progress</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.UserStats.PendingTasks</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
     </div>
 
     <!-- User Management Section -->
@@ -288,7 +315,10 @@
                         {
                             <tr>
                                 <td>@user.Id</td>
-                                <td>@user.UserName</td>
+                                <td>
+                                        <a href="@Url.Action("UserTasks", "Task", new { userId = user.Id })">@user.UserName</a>
+
+                                </td>
                                 <td>@user.Email</td>
                                 <td>@user.FirstName @user.LastName</td>
                                 <td>
