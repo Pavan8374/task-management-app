@@ -60,9 +60,10 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    @using (Html.BeginForm("Update", "Task", FormMethod.Post, new { @id = "createTaskForm", @class = "needs-validation", novalidate = "novalidate" }))
+                    @using (Html.BeginForm("Update", "Task", FormMethod.Post, new { @id = "updateTaskForm", @class = "needs-validation", novalidate = "novalidate" }))
                     {
                         @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.Id)
 
                         <div class="row">
                             <!-- Title -->
@@ -94,6 +95,23 @@
                                 <div class="form-text">Maximum 1000 characters</div>
                             </div>
 
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.TaskStatus, "Status", new { @class = "form-label" })
+                                <span class="text-danger">*</span>
+                                @Html.DropDownListFor(m => m.TaskStatus, new SelectList(new List<object> {
+                            new { Value = "Pending", Text = "Pending" },
+                            new { Value = "In Progress", Text = "In Progress" },
+                            new { Value = "Completed", Text = "Completed" },
+                            new { Value = "On Hold", Text = "On Hold" }
+                            }, "Value", "Text", Model?.TaskStatus), new
+                                                {
+                                                    @class = "form-select" + (Html.ViewData.ModelState["TaskStatus"]?.Errors.Count > 0 ? " is-invalid" : ""),
+                                                    @required = "required"
+                                                })
+                                @Html.ValidationMessageFor(m => m.TaskStatus, "", new { @class = "invalid-feedback" })
+                            </div>
+                        </div>
+
                             <!-- Priority -->
                             <div class="col-md-6 mb-3">
                                 @Html.LabelFor(m => m.TaskPriority, "Priority", new { @class = "form-label" })
@@ -123,7 +141,7 @@
                                     })
                                 @Html.ValidationMessageFor(m => m.DueDate, "", new { @class = "invalid-feedback" })
                             </div>
-                        </div>
+                        
 
                         <!-- Form Actions -->
                         <div class="row">
@@ -169,10 +187,10 @@
             }
 
             // Form submission with loading state
-            $('#createTaskForm').on('submit', function() {
+            $('#updateTaskForm').on('submit', function() {
                 const $submitBtn = $('#submitBtn');
                 $submitBtn.prop('disabled', true);
-                $submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Creating...');
+                $submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Updating...');
             });
 
             // Auto-dismiss alerts after 5 seconds

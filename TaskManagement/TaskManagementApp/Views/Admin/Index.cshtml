@@ -1,190 +1,370 @@
-﻿@{
+﻿@using TaskManagement.Application.DTOs.Users
+@model AdminDashboardViewModel
+@{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .stats-card {
+            border-radius: 10px;
+            transition: transform 0.3s;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+            .stats-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .icon-primary {
+            color: #4e73df;
+        }
+
+        .icon-success {
+            color: #1cc88a;
+        }
+
+        .icon-warning {
+            color: #f6c23e;
+        }
+
+        .icon-info {
+            color: #36b9cc;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stats-label {
+            color: #5a5c69;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 0.25rem;
+        }
+
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .badge-inactive {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+            .toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 16px;
+                width: 16px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+        input:checked + .slider {
+            background-color: #1cc88a;
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+    </style>
 }
 
-<div class="admin-dashboard">
+<div class="container-fluid">
     <!-- Dashboard Header -->
-    <div class="dashboard-header fade-in">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="dashboard-title">
-                        <i class="fas fa-tachometer-alt me-3"></i>Admin Dashboard
-                    </h1>
-                    <p class="dashboard-subtitle">Welcome back! Here's what's happening with your application today.</p>
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+        </h1>
+        <div class="text-muted">
+            <i class="fas fa-calendar-alt me-2"></i>
+            @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100 py-2 border-left-primary">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.UserStats.TotalUsers
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 text-end">
-                    <div class="text-white">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span id="current-date"></span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100 py-2 border-left-success">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.UserStats.ActiveUsers
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100 py-2 border-left-warning">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Inactive Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.UserStats.InactiveUsers
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100 py-2 border-left-info">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                New This Month
+                            </div>
+                            @* <div class="h5 mb-0 font-weight-bold text-gray-800"> *@
+                            @*     @Model.UserStats.NewUsersThisMonth *@
+                            @* </div> *@
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Statistics Cards -->
-        <div class="row mb-4 slide-up">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card stats-card">
-                    <div class="card-body">
-                        <div class="card-icon icon-primary">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stats-number" id="total-users">Loading...</div>
-                        <div class="stats-label">Total Users</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card stats-card">
-                    <div class="card-body">
-                        <div class="card-icon icon-success">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <div class="stats-number" id="active-users">Loading...</div>
-                        <div class="stats-label">Active Users</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card stats-card">
-                    <div class="card-body">
-                        <div class="card-icon icon-warning">
-                            <i class="fas fa-user-times"></i>
-                        </div>
-                        <div class="stats-number" id="inactive-users">Loading...</div>
-                        <div class="stats-label">Inactive Users</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card stats-card">
-                    <div class="card-body">
-                        <div class="card-icon icon-info">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="stats-number" id="new-users">Loading...</div>
-                        <div class="stats-label">New This Month</div>
-                    </div>
+    <!-- User Management Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-users-cog me-2"></i>User Management
+            </h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                   data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                     aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Actions:</div>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-file-export me-2"></i>Export Users
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </a>
                 </div>
             </div>
         </div>
-
-        <!-- User Management Section -->
-        <div class="user-management-section slide-up">
-            <h2 class="section-title">
-                <i class="fas fa-users-cog me-2"></i>User Management
-            </h2>
-
-            <!-- Advanced Filters -->
-            <div class="filters-section">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="filter-group">
-                            <label class="filter-label">Search Users</label>
-                            <input type="text" id="search-input" class="form-control" placeholder="Search by name or email...">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="filter-group">
-                            <label class="filter-label">Status</label>
-                            <select id="status-filter" class="form-select">
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="filter-group">
-                            <label class="filter-label">Sort By</label>
-                            <select id="sort-filter" class="form-select">
-                                <option value="UserName">Username</option>
-                                <option value="Email">Email</option>
-                                <option value="CreatedAt">Registration Date</option>
-                                <option value="FirstName">First Name</option>
-                                <option value="LastName">Last Name</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="filter-group">
-                            <label class="filter-label">Order</label>
-                            <select id="order-filter" class="form-select">
-                                <option value="true">Ascending</option>
-                                <option value="false">Descending</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="filter-group">
-                            <label class="filter-label">&nbsp;</label>
-                            <div class="d-flex gap-2">
-                                <button type="button" id="apply-filters" class="btn btn-filter">
-                                    <i class="fas fa-search me-1"></i>Apply
-                                </button>
-                                <button type="button" id="clear-filters" class="btn btn-clear">
-                                    <i class="fas fa-times me-1"></i>Clear
-                                </button>
-                            </div>
-                        </div>
+        <div class="card-body">
+            <!-- Filter Controls -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control"
+                               placeholder="Search users..." value="@Model.CurrentQuery.Search">
+                        <button class="btn btn-primary" type="button" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Loading Spinner -->
-            <div class="loading-spinner" id="loading-spinner" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="true" selected="@(Model.CurrentQuery.IsActive == true)">Active</option>
+                        <option value="false" selected="@(Model.CurrentQuery.IsActive == false)">Inactive</option>
+                    </select>
                 </div>
-                <div class="mt-2">Loading users...</div>
-            </div>
-
-            <!-- Error Message -->
-            <div class="alert alert-danger" id="error-message" style="display: none;">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <span id="error-text"></span>
+                <div class="col-md-3">
+                    <select class="form-select" id="sortBy">
+                        <option value="UserName" selected="@(Model.CurrentQuery.SortBy == "UserName")">Username</option>
+                        <option value="Email" selected="@(Model.CurrentQuery.SortBy == "Email")">Email</option>
+                        <option value="CreatedAt" selected="@(Model.CurrentQuery.SortBy == "CreatedAt")">Registration Date</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="sortOrder">
+                        <option value="true" selected="@(Model.CurrentQuery.IsAsc)">Ascending</option>
+                        <option value="false" selected="@(!Model.CurrentQuery.IsAsc)">Descending</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Users Table -->
             <div class="table-responsive">
-                <table id="users-table" class="table table-hover">
-                    <thead>
+                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                    <thead class="thead-light">
                         <tr>
                             <th>ID</th>
                             <th>Username</th>
-                            <th>Name</th>
                             <th>Email</th>
+                            <th>Name</th>
                             <th>Status</th>
-                            <th>Registration Date</th>
+                            <th>Registered</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated via JavaScript -->
+                        @foreach (var user in Model.Users.Items)
+                        {
+                            <tr>
+                                <td>@user.Id</td>
+                                <td>@user.UserName</td>
+                                <td>@user.Email</td>
+                                <td>@user.FirstName @user.LastName</td>
+                                <td>
+                                    <span class="status-badge @(user.IsActive ? "badge-active" : "badge-inactive")">
+                                        @(user.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <label class="toggle-switch me-2">
+                                            <input type="checkbox" class="user-status-toggle"
+                                                   data-user-id="@user.Id" @(user.IsActive ? "checked" : "")>
+                                            <span class="slider"></span>
+                                        </label>
+                                        @* <a href="#" class="btn btn-sm btn-info me-2">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a> *@
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div>
-                    <span id="pagination-info">Showing 0 to 0 of 0 users</span>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="dataTables_info">
+                        Showing @((Model.Users.Page - 1) * Model.Users.PageSize + 1) to
+                        @Math.Min(Model.Users.Page * Model.Users.PageSize, Model.Users.TotalCount)
+                        of @Model.Users.TotalCount users
+                    </div>
                 </div>
-                <nav aria-label="Users pagination">
-                    <ul class="pagination" id="pagination-controls">
-                        <!-- Pagination will be populated via JavaScript -->
-                    </ul>
-                </nav>
+                <div class="col-md-6">
+                    <nav class="float-end">
+                        <ul class="pagination">
+                            <li class="page-item @(Model.Users.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link" href="@Url.Action("Index", new {
+                                    page = Model.Users.Page - 1,
+                                    pageSize = Model.Users.PageSize,
+                                    search = Model.CurrentQuery.Search,
+                                    sortBy = Model.CurrentQuery.SortBy,
+                                    isAsc = Model.CurrentQuery.IsAsc
+                                })">Previous</a>
+                            </li>
+
+                            @for (int i = 1; i <= Model.Users.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Users.Page ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new {
+                                        page = i,
+                                        pageSize = Model.Users.PageSize,
+                                        search = Model.CurrentQuery.Search,
+                                        sortBy = Model.CurrentQuery.SortBy,
+                                        isAsc = Model.CurrentQuery.IsAsc
+                                    })">@i</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.Users.HasNextPage ? "" : "disabled")">
+                                <a class="page-link" href="@Url.Action("Index", new {
+                                    page = Model.Users.Page + 1,
+                                    pageSize = Model.Users.PageSize,
+                                    search = Model.CurrentQuery.Search,
+                                    sortBy = Model.CurrentQuery.SortBy,
+                                    isAsc = Model.CurrentQuery.IsAsc
+                                })">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -199,387 +379,88 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p id="status-change-message"></p>
+                <p id="statusChangeMessage">Are you sure you want to change this user's status?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirm-status-change">Confirm</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusChange">Confirm</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Global variables
-            let currentPage = 1;
-            let pageSize = 10;
-            let currentFilters = {
-                search: '',
-                status: '',
-                sortBy: 'UserName',
-                isAsc: true
-            };
-
-            // Initialize current date
-            const now = new Date();
-            const options = {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            };
-            $('#current-date').text(now.toLocaleDateString('en-US', options));
-
-            // Load initial data
-            loadUserStatistics();
-            loadUsers();
-
-            // Load user statistics
-            function loadUserStatistics() {
-                $.ajax({
-                    url: '@Url.Action("GetUserStatistics", "Admin")',
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            const stats = response.data;
-                            $('#total-users').text(stats.totalUsers || 0);
-                            $('#active-users').text(stats.activeUsers || 0);
-                            $('#inactive-users').text(stats.inactiveUsers || 0);
-                            $('#new-users').text(stats.newUsersThisMonth || 0);
-
-                            // Animate statistics cards
-                            animateStatsCards();
-                        }
-                    },
-                    error: function() {
-                        showError('Failed to load user statistics');
-                    }
-                });
-            }
-
-            // Load users with pagination and filtering
-            function loadUsers(page = 1) {
-                showLoading(true);
-                hideError();
-
-                const requestData = {
-                    page: page,
-                    pageSize: pageSize,
-                    search: currentFilters.search,
-                    sortBy: currentFilters.sortBy,
-                    isAsc: currentFilters.isAsc
-                };
-
-                $.ajax({
-                    url: '@Url.Action("GetAllUserByFilter", "Admin")',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(requestData),
-                    success: function(response) {
-                        showLoading(false);
-
-                        if (response.success) {
-                            const data = response.data;
-                            populateUsersTable(data.items);
-                            updatePagination(data);
-                            currentPage = page;
-                        } else {
-                            showError(response.message || 'Failed to load users');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        showLoading(false);
-                        showError('Failed to load users: ' + error);
-                    }
-                });
-            }
-
-            // Populate users table
-            function populateUsersTable(users) {
-                const tbody = $('#users-table tbody');
-                tbody.empty();
-
-                if (!users || users.length === 0) {
-                    tbody.append('<tr><td colspan="7" class="text-center">No users found</td></tr>');
-                    return;
-                }
-
-                users.forEach(function(user) {
-                    const statusBadge = user.isActive ?
-                        '<span class="badge bg-success">Active</span>' :
-                        '<span class="badge bg-danger">Inactive</span>';
-
-                    const statusAction = user.isActive ?
-                        `<button class="btn-action btn-deactivate" data-id="${user.id}" data-action="deactivate">
-                            <i class="fas fa-user-times"></i> Deactivate
-                        </button>` :
-                        `<button class="btn-action btn-activate" data-id="${user.id}" data-action="activate">
-                            <i class="fas fa-user-check"></i> Activate
-                        </button>`;
-
-                    const fullName = `${user.firstName} ${user.lastName}`.trim();
-                    const registrationDate = new Date(user.createdAt).toLocaleDateString('en-US');
-
-                    const row = `
-                        <tr>
-                            <td>${user.id}</td>
-                            <td>${user.userName || ''}</td>
-                            <td>${fullName || user.userName}</td>
-                            <td>${user.email || ''}</td>
-                            <td>${statusBadge}</td>
-                            <td>${registrationDate}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-action btn-view" data-id="${user.id}" data-action="view">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                    <button class="btn-action btn-edit" data-id="${user.id}" data-action="edit">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    ${statusAction}
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.append(row);
-                });
-
-                // Bind action handlers
-                bindActionHandlers();
-            }
-
-            // Update pagination
-            function updatePagination(data) {
-                const info = `Showing ${((data.page - 1) * data.pageSize) + 1} to ${Math.min(data.page * data.pageSize, data.totalCount)} of ${data.totalCount} users`;
-                $('#pagination-info').text(info);
-
-                const paginationControls = $('#pagination-controls');
-                paginationControls.empty();
-
-                if (data.totalPages <= 1) return;
-
-                // Previous button
-                const prevDisabled = !data.hasPreviousPage ? 'disabled' : '';
-                paginationControls.append(`
-                    <li class="page-item ${prevDisabled}">
-                        <a class="page-link" href="#" data-page="${data.page - 1}">Previous</a>
-                    </li>
-                `);
-
-                // Page numbers
-                const startPage = Math.max(1, data.page - 2);
-                const endPage = Math.min(data.totalPages, data.page + 2);
-
-                for (let i = startPage; i <= endPage; i++) {
-                    const active = i === data.page ? 'active' : '';
-                    paginationControls.append(`
-                        <li class="page-item ${active}">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                        </li>
-                    `);
-                }
-
-                // Next button
-                const nextDisabled = !data.hasNextPage ? 'disabled' : '';
-                paginationControls.append(`
-                    <li class="page-item ${nextDisabled}">
-                        <a class="page-link" href="#" data-page="${data.page + 1}">Next</a>
-                    </li>
-                `);
-
-                // Bind pagination clicks
-                paginationControls.find('a').on('click', function(e) {
-                    e.preventDefault();
-                    const page = parseInt($(this).data('page'));
-                    if (page && page !== currentPage) {
-                        loadUsers(page);
-                    }
-                });
-            }
-
-            // Filter event handlers
-            $('#search-input').on('keyup debounce', debounce(function() {
-                currentFilters.search = this.value;
-                loadUsers(1);
-            }, 500));
-
-            $('#status-filter').on('change', function() {
-                const status = this.value;
-                currentFilters.search = status ? (status === 'active' ? 'true' : 'false') : '';
-                loadUsers(1);
+            // Initialize DataTable
+            $('#usersTable').DataTable({
+                paging: false,
+                searching: false,
+                info: false,
+                ordering: false
             });
 
-            $('#sort-filter').on('change', function() {
-                currentFilters.sortBy = this.value;
-                loadUsers(1);
-            });
+            // Status toggle handler
+            $('.user-status-toggle').change(function() {
+                const userId = $(this).data('user-id');
+                const newStatus = $(this).is(':checked');
 
-            $('#order-filter').on('change', function() {
-                currentFilters.isAsc = this.value === 'true';
-                loadUsers(1);
-            });
-
-            // Apply filters button
-            $('#apply-filters').on('click', function() {
-                loadUsers(1);
-            });
-
-            // Clear filters button
-            $('#clear-filters').on('click', function() {
-                $('#search-input').val('');
-                $('#status-filter').val('');
-                $('#sort-filter').val('UserName');
-                $('#order-filter').val('true');
-
-                currentFilters = {
-                    search: '',
-                    status: '',
-                    sortBy: 'UserName',
-                    isAsc: true
-                };
-
-                loadUsers(1);
-            });
-
-            // Bind action handlers
-            function bindActionHandlers() {
-                $('.btn-action').off('click').on('click', function() {
-                    const action = $(this).data('action');
-                    const userId = $(this).data('id');
-
-                    switch(action) {
-                        case 'view':
-                            viewUser(userId);
-                            break;
-                        case 'edit':
-                            editUser(userId);
-                            break;
-                        case 'activate':
-                        case 'deactivate':
-                            confirmStatusChange(userId, action);
-                            break;
-                    }
-                });
-            }
-
-            // Action handlers
-            function viewUser(userId) {
-                console.log('Viewing user:', userId);
-                // In real app, redirect to user details page
-                alert(`Viewing user with ID: ${userId}`);
-            }
-
-            function editUser(userId) {
-                console.log('Editing user:', userId);
-                // In real app, redirect to edit page
-                alert(`Editing user with ID: ${userId}`);
-            }
-
-            function confirmStatusChange(userId, action) {
-                const actionText = action === 'activate' ? 'activate' : 'deactivate';
-                const message = `Are you sure you want to ${actionText} this user?`;
-
-                $('#status-change-message').text(message);
-                $('#confirm-status-change').data('user-id', userId).data('action', action);
+                $('#statusChangeMessage').text(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this user?`);
+                $('#statusChangeModal').data('user-id', userId);
+                $('#statusChangeModal').data('new-status', newStatus);
                 $('#statusChangeModal').modal('show');
-            }
+            });
 
             // Confirm status change
-            $('#confirm-status-change').on('click', function() {
-                const userId = $(this).data('user-id');
-                const action = $(this).data('action');
-                const isActive = action === 'activate';
+            $('#confirmStatusChange').click(function() {
+                const userId = $('#statusChangeModal').data('user-id');
+                const newStatus = $('#statusChangeModal').data('new-status');
 
                 $.ajax({
                     url: '@Url.Action("ToggleUserStatus", "Admin")',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ userId: userId, isActive: isActive }),
+                    data: JSON.stringify({
+                        UserId: userId,
+                        IsActive: newStatus
+                    }),
                     success: function(response) {
                         if (response.success) {
-                            $('#statusChangeModal').modal('hide');
-                            showSuccessMessage(response.message);
-                            loadUsers(currentPage); // Reload current page
-                            loadUserStatistics(); // Refresh statistics
+                            location.reload();
                         } else {
-                            showError(response.message);
+                            alert(response.message);
                         }
                     },
-                    error: function() {
-                        showError('Failed to update user status');
+                    error: function(xhr) {
+                        alert('An error occurred while updating user status');
                     }
                 });
+
+                $('#statusChangeModal').modal('hide');
             });
 
-            // Utility functions
-            function showLoading(show) {
-                if (show) {
-                    $('#loading-spinner').show();
-                } else {
-                    $('#loading-spinner').hide();
-                }
-            }
+            // Filter controls
+            $('#searchButton').click(applyFilters);
+            $('#searchInput').keypress(function(e) {
+                if (e.which === 13) applyFilters();
+            });
 
-            function showError(message) {
-                $('#error-text').text(message);
-                $('#error-message').show();
-            }
+            $('#statusFilter, #sortBy, #sortOrder').change(applyFilters);
 
-            function hideError() {
-                $('#error-message').hide();
-            }
-
-            function showSuccessMessage(message) {
-                const alertHtml = `
-                    <div class="alert alert-success alert-dismissible fade show position-fixed"
-                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
-
-                $('body').append(alertHtml);
-
-                setTimeout(function() {
-                    $('.alert').fadeOut(function() {
-                        $(this).remove();
-                    });
-                }, 3000);
-            }
-
-            function animateStatsCards() {
-                setTimeout(function() {
-                    $('.stats-card').each(function(index) {
-                        const $card = $(this);
-                        setTimeout(function() {
-                            $card.addClass('fade-in');
-                        }, index * 100);
-                    });
-                }, 500);
-            }
-
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
+            function applyFilters() {
+                const params = {
+                    page: 1,
+                    pageSize: @Model.Users.PageSize,
+                    search: $('#searchInput').val(),
+                    isActive: $('#statusFilter').val() === '' ? null : $('#statusFilter').val() === 'true',
+                    sortBy: $('#sortBy').val(),
+                    isAsc: $('#sortOrder').val() === 'true'
                 };
-            }
 
-            // Auto-refresh statistics every 5 minutes
-            setInterval(function() {
-                loadUserStatistics();
-            }, 300000);
+                window.location.href = '@Url.Action("Index")' + '?' + $.param(params);
+            }
         });
     </script>
 }
-
-<style>
-   
-</style>

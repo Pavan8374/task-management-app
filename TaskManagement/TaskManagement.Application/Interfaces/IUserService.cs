@@ -13,5 +13,8 @@ namespace TaskManagement.Application.Interfaces
             string? search,
             string? sortBy,
             bool ascending);
+
+        Task<UserStatsModel> GetUserStatsAsync(UserQueryRequest request);
+        Task<bool> ManageUser(int userId, bool isActive);
     }
 }

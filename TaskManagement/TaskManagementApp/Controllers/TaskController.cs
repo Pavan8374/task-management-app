@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using TaskManagement.Application.DTOs.Tasks;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Models.Tasks;
@@ -21,12 +22,12 @@ namespace TaskManagementApp.Controllers
         [HttpGet]
         [Route("Dashboard")]
         [AutoValidateAntiforgeryToken]
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(TaskFilterRequestModel model)
         {
             try
             {
-                // Generate dummy tasks for design showcase
                 var stats = await _taskService.GetTaskStatsAsync(GetCurrentUserId());
+                var tasks = await _taskService.GetFilteredTasksAsync(GetCurrentUserId(), model); // This now returns PagedResult<TaskResponseModel>
 
                 var viewModel = new DashboardViewModel
                 {
@@ -36,7 +37,9 @@ namespace TaskManagementApp.Controllers
                     PendingTasks = stats.PendingTasks,
                     OverdueTasks = stats.OverdueTasks,
                     StatusOptions = new List<string> { "Pending", "In Progress", "Completed", "On Hold" },
-                    PriorityOptions = new List<string> { "Low", "Medium", "High", "Critical" }
+                    PriorityOptions = new List<string> { "Low", "Medium", "High", "Critical" },
+                    Tasks = tasks, // Assign the PagedResult<TaskResponseModel> directly
+                    CurrentFilter = model // Assign the current filter model
                 };
 
                 return View(viewModel);
@@ -44,7 +47,12 @@ namespace TaskManagementApp.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Error loading dashboard: " + ex.Message;
-                return View(new DashboardViewModel());
+                // Ensure a valid DashboardViewModel is returned even on error
+                return View(new DashboardViewModel
+                {
+                    StatusOptions = new List<string> { "Pending", "In Progress", "Completed", "On Hold" },
+                    PriorityOptions = new List<string> { "Low", "Medium", "High", "Critical" }
+                });
             }
         }
 
@@ -116,69 +124,99 @@ namespace TaskManagementApp.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            // Initialize model with default values if needed
+            var task = await _taskService.GetTaskByIdAsync(id);
+            var response = new UpdateTaskRequest()
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                DueDate = task.DueDate,
+                TaskStatus = task.TaskStatus,
+                TaskPriority = task.TaskPriority
+            };
+            return View(response);
+        }
+
+        [HttpPost]
         [Route("Update")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update([FromBody] UpdateTaskRequest request)
+        public async Task<IActionResult> Update(UpdateTaskRequest request)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                    return Json(new TaskResponse
-                    {
-                        Success = false,
-                        Message = "Validation failed",
-                        Errors = errors
-                    });
+                    return View(request);
                 }
 
-                var task = await _taskService.UpdateTaskAsync(request, GetCurrentUserId());
-
-                return Json(new TaskResponse
-                {
-                    Success = true,
-                    Message = "Task updated successfully"
-                });
+                await _taskService.UpdateTaskAsync(request, GetCurrentUserId());
+                TempData["SuccessMessage"] = "Task updated successfully!";
+                return RedirectToAction("Dashboard");
             }
             catch (Exception ex)
             {
-                return Json(new TaskResponse
-                {
-                    Success = false,
-                    Message = "Error updating task",
-                    Errors = new List<string> { ex.Message }
-                });
+                TempData["ErrorMessage"] = "Error updating task: " + ex.Message;
+                return View(request);
             }
         }
 
-        [HttpDelete]
-        [Route("Delete/{id}")]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var task = await _taskService.GetTaskByIdAsync(id);
+                if (task == null)
+                {
+                    return NotFound();
+                }
+                return View(task);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error retrieving task details: " + ex.Message;
+                return RedirectToAction("Dashboard");
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                await _taskService.DeleteTaskAsync(id, GetCurrentUserId());
-                return Json(new TaskResponse
+                var task = await _taskService.GetTaskByIdAsync(id);
+                if (task == null)
                 {
-                    Success = true,
-                    Message = "Task deleted successfully"
-                });
+                    return NotFound();
+                }
+                return View(task);
             }
             catch (Exception ex)
             {
-                return Json(new TaskResponse
-                {
-                    Success = false,
-                    Message = "Error deleting task",
-                    Errors = new List<string> { ex.Message }
-                });
+                TempData["ErrorMessage"] = "Error loading task for deletion: " + ex.Message;
+                return RedirectToAction("Dashboard");
+            }
+        }
+
+        // POST: Task/Delete
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            try
+            {
+                await _taskService.DeleteTaskAsync(id, GetCurrentUserId());
+                TempData["SuccessMessage"] = "Task deleted successfully!";
+                return RedirectToAction("Dashboard");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error deleting task: " + ex.Message;
+                return RedirectToAction("Delete", new { id });
             }
         }
 

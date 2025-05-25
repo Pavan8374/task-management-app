@@ -1,32 +1,39 @@
-﻿@using TaskManagementApp.Models.DashBoard
-<!-- Views/Task/Dashboard.cshtml -->
+﻿@using TaskManagement.Application.Models.Tasks
+@using TaskManagementApp.Models.DashBoard
 @model DashboardViewModel
+
 @{
     ViewData["Title"] = "Task Management Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Get current filter values for persisting state
+    var currentStatus = Context.Request.Query["status"].ToString();
+    var currentPriority = Context.Request.Query["priority"].ToString();
+    var currentSearchTerm = Context.Request.Query["searchTerm"].ToString();
+    var currentSortBy = Context.Request.Query["sortBy"].ToString();
+    var currentPage = Model.Tasks?.Page ?? 1;
+
+    // Get view mode from cookie or default to 'list'
+    var viewMode = Context.Request.Cookies["TaskViewMode"] ?? "list";
 }
 
-
-
-<div class="container-fluid">
-    <!-- Header -->
+<div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2 class="text-primary mb-0">
+                <h2 class="text-primary mb-0 animate__animated animate__fadeInLeft">
                     <i class="fas fa-tasks me-2"></i>Task Management Dashboard
                 </h2>
-                <a href="@Url.Action("Create", "Task")" class="btn btn-primary btn-lg">
+                <a href="@Url.Action("Create", "Task")" class="btn btn-primary btn-lg shadow-sm animate__animated animate__fadeInRight">
                     <i class="fas fa-plus me-2"></i>Add New Task
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate__animated animate__fadeInUp">
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card border-left-primary shadow h-100 py-2 dashboard-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -41,7 +48,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
+            <div class="card border-left-success shadow h-100 py-2 dashboard-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -56,7 +63,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card border-left-info shadow h-100 py-2 dashboard-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -71,7 +78,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card border-left-warning shadow h-100 py-2 dashboard-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -87,51 +94,54 @@
         </div>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate__animated animate__fadeInUp">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
-                        <i class="fas fa-filter me-1"></i>Toggle Filters
+                <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-filter me-2"></i>Filters & Search
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="true" aria-controls="filtersCollapse">
+                        <i class="fas fa-sliders-h me-1"></i>Toggle Filters
                     </button>
                 </div>
                 <div class="collapse show" id="filtersCollapse">
                     <div class="card-body">
-                        <form id="filterForm">
-                            <div class="row">
-                                <div class="col-md-3 mb-3">
-                                    <label for="statusFilter" class="form-label">Status</label>
-                                    <select class="form-select" id="statusFilter" name="status">
+                        <form id="filterForm" asp-action="Dashboard" asp-controller="Task" method="get">
+                            <input type="hidden" name="page" value="1" /> @* Reset page on filter change *@
+                            <input type="hidden" name="pageSize" value="@(Model.Tasks?.PageSize ?? 6)" />
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label for="statusFilter" class="form-label text-muted">Status</label>
+                                    <select class="form-select" id="statusFilter" name="status" onchange="this.form.submit()">
                                         <option value="">All Status</option>
                                         @foreach (var status in Model.StatusOptions)
                                         {
-                                            <option value="@status">@status</option>
+                                            <option value="@status" selected="@(currentStatus == status)">@status</option>
                                         }
                                     </select>
                                 </div>
-                                <div class="col-md-3 mb-3">
-                                    <label for="priorityFilter" class="form-label">Priority</label>
-                                    <select class="form-select" id="priorityFilter" name="priority">
+                                <div class="col-md-3">
+                                    <label for="priorityFilter" class="form-label text-muted">Priority</label>
+                                    <select class="form-select" id="priorityFilter" name="priority" onchange="this.form.submit()">
                                         <option value="">All Priorities</option>
                                         @foreach (var priority in Model.PriorityOptions)
                                         {
-                                            <option value="@priority">@priority</option>
+                                            <option value="@priority" selected="@(currentPriority == priority)">@priority</option>
                                         }
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="searchInput" class="form-label">Search Tasks</label>
+                                <div class="col-md-4">
+                                    <label for="searchInput" class="form-label text-muted">Search Tasks</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="searchInput" name="searchTerm" placeholder="Search by title or description...">
-                                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                        <input type="text" class="form-control" id="searchInput" name="searchTerm" placeholder="Search by title or description..." value="@currentSearchTerm">
+                                        <button class="btn btn-outline-primary" type="submit" id="searchBtn">
                                             <i class="fas fa-search"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-2 mb-3 d-flex align-items-end">
-                                    <button type="button" class="btn btn-secondary w-100" id="clearFiltersBtn">
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-outline-secondary w-100" id="clearFiltersBtn">
                                         <i class="fas fa-times me-1"></i>Clear
                                     </button>
                                 </div>
@@ -143,79 +153,262 @@
         </div>
     </div>
 
-    <!-- Tasks List -->
-    <div class="row">
+    <div class="row animate__animated animate__fadeInUp">
         <div class="col-12">
             <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Tasks</h6>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list-check me-2"></i>Tasks
+                    </h6>
                     <div class="d-flex align-items-center">
-                        <select class="form-select form-select-sm me-2" id="sortBy" style="width: auto;">
-                            <option value="dueDate">Sort by Due Date</option>
-                            <option value="priority">Sort by Priority</option>
-                            <option value="status">Sort by Status</option>
-                            <option value="title">Sort by Title</option>
+                        <select class="form-select form-select-sm me-2" id="sortBy" style="width: auto;" onchange="submitSort()">
+                            <option value="dueDate" selected="@(currentSortBy == "dueDate")">Sort by Due Date</option>
+                            <option value="priority" selected="@(currentSortBy == "priority")">Sort by Priority</option>
+                            <option value="status" selected="@(currentSortBy == "status")">Sort by Status</option>
+                            <option value="title" selected="@(currentSortBy == "title")">Sort by Title</option>
                         </select>
                         <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="gridViewBtn">
+                            <button type="button" class="btn btn-sm btn-outline-primary @(viewMode == "grid" ? "active" : "")" id="gridViewBtn">
                                 <i class="fas fa-th me-1"></i>Grid
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary active" id="listViewBtn">
+                            <button type="button" class="btn btn-sm btn-outline-primary @(viewMode == "list" ? "active" : "")" id="listViewBtn">
                                 <i class="fas fa-list me-1"></i>List
                             </button>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- Loading indicator -->
-                    <div id="loadingIndicator" class="text-center py-4" style="display: none;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Loading tasks...</p>
-                    </div>
+                    @if (Model.Tasks != null && Model.Tasks.Items.Any())
+                    {
+                        <div id="tasksContainer" class="@(viewMode == "grid" ? "row grid-view" : "list-view")">
+                            @foreach (var task in Model.Tasks.Items)
+                            {
+                                var statusClass = $"badge-status-{task.TaskStatus.ToString().Replace(" ", "")}";
+                                var priorityClass = $"badge-priority-{task.TaskPriority.ToString().Replace(" ", "")}";
+                                var dueDate = task.DueDate.ToShortDateString();
 
-                    <!-- Grid View (Cards in columns) -->
-                    <div id="gridView" style="display: none;">
-                        <div class="row" id="tasksGridContainer">
-                            <!-- Task cards will be loaded here via AJAX -->
-                        </div>
-                    </div>
+                                if (viewMode == "list")
+                                {
+                                    <div class="card mb-3 shadow-sm task-card animate__animated animate__fadeIn" data-task-id="@task.Id" data-status="@task.TaskStatus" data-priority="@task.TaskPriority">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="card-title mb-0">@task.Title</h5>
+                                                <span class="badge @statusClass text-white">@task.TaskStatus</span>
+                                            </div>
+                                            <p class="card-text text-muted mb-2">@task.Description</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Due: @dueDate</small>
+                                                <span class="badge @priorityClass"><i class="fas fa-exclamation-triangle me-1"></i>@task.TaskPriority</span>
+                                            </div>
+                                            <div class="d-flex justify-content-end mt-3">
+                                                @* <a asp-controller="Task" asp-action="Details" asp-route-id="@task.Id" class="btn btn-info btn-sm me-2"><i class="fas fa-eye me-1"></i>View</a> *@
+                                                @* <a asp-controller="Task" asp-action="Update" asp-route-id="@task.Id" class="btn btn-warning btn-sm me-2"><i class="fas fa-edit me-1"></i>Edit</a> *@
+                                                <a href="/Task/Details?id=@task.Id" class="btn btn-info btn-sm me-2">
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </a>
+                                                <a href="/Task/Update?id=@task.Id" class="btn btn-warning btn-sm me-2">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </a>
+                                                <a href="/Task/Delete?id=@task.Id" class="btn btn-danger btn-sm me-2">
+                                                    <i class="fas fa-trash-alt me-1"></i>Delete
+                                                </a>
+                                                @* <a asp-controller="Task" asp-action="Delete" asp-route-id="@task.Id" class="btn btn-warning btn-sm me-2"><i class="fas fa-trash-alt me-1"></i>Delete</a> *@
+                                                </div>
+                                        </div>
+                                    </div>
+                                }
+                                else // Grid view
+                                {
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card h-100 shadow-sm task-card animate__animated animate__fadeIn" data-task-id="@task.Id" data-status="@task.TaskStatus" data-priority="@task.TaskPriority">
+                                            <div class="card-body d-flex flex-column">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="card-title mb-0">@task.Title</h5>
+                                                    <span class="badge @statusClass text-white">@task.TaskStatus</span>
+                                                </div>
+                                                <p class="card-text text-muted mb-2 flex-grow-1">@task.Description</p>
+                                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Due: @dueDate</small>
+                                                    <span class="badge @priorityClass"><i class="fas fa-exclamation-triangle me-1"></i>@task.TaskPriority</span>
+                                                </div>
+                                                <div class="d-flex justify-content-end mt-3">
+                                                    @* <a asp-controller="Task" asp-action="Details" asp-route-id="@task.Id" class="btn btn-info btn-sm me-2">
+                                                        <i class="fas fa-eye me-1"></i>View
+                                                    </a>
+                                                    <a asp-controller="Task" asp-action="Update" asp-route-id="@task.Id" class="btn btn-warning btn-sm me-2">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </a>
+                                                    <a asp-controller="Task" asp-action="Delete" asp-route-id="@task.Id" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                                    </a> *@
 
-                    <!-- List View (Cards in single column) -->
-                    <div id="listView">
-                        <div id="tasksListContainer">
-                            <!-- Task cards will be loaded here via AJAX -->
+                                                    <a href="/Task/Details?id=@task.Id" class="btn btn-info btn-sm me-2">
+                                                        <i class="fas fa-eye me-1"></i>View
+                                                    </a>
+                                                    <a href="/Task/Update?id=@task.Id" class="btn btn-warning btn-sm me-2">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </a>
+                                                    <a href="/Task/Delete?id=@task.Id" class="btn btn-danger btn-sm me-2">
+                                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div id="noTasksMessage" class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No tasks found</h5>
+                            <p class="text-muted">Adjust your filters or create a new task!</p>
+                            <a href="@Url.Action("Create", "Task")" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-2"></i>Add New Task
+                            </a>
+                        </div>
+                    }
 
-                    <!-- Pagination -->
-                    <nav aria-label="Tasks pagination" id="tasksPagination" style="display: none;">
-                        <ul class="pagination justify-content-center" id="paginationList">
-                            <!-- Pagination items will be generated here -->
-                        </ul>
+                    <nav aria-label="Tasks pagination" class="mt-4">
+                        @if (Model.Tasks != null && Model.Tasks.TotalPages > 1)
+                        {
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item @(Model.Tasks.HasPreviousPage ? "" : "disabled")">
+                                    <a class="page-link"
+                                       href="@Url.Action("Dashboard", "Task", new TaskFilterRequestModel {
+                                            Page = Model.Tasks.Page - 1,
+                                            PageSize = Model.Tasks.PageSize,
+                                            Status = currentStatus,
+                                            Priority = currentPriority,
+                                            SearchTerm = currentSearchTerm,
+                                            SortBy = currentSortBy
+                                        })">Previous</a>
+                                </li>
+
+                                @for (int i = 1; i <= Model.Tasks.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.Tasks.Page ? "active" : "")">
+                                        <a class="page-link"
+                                           href="@Url.Action("Dashboard", "Task", new TaskFilterRequestModel {
+                                                Page = i,
+                                                PageSize = Model.Tasks.PageSize,
+                                                Status = currentStatus,
+                                                Priority = currentPriority,
+                                                SearchTerm = currentSearchTerm,
+                                                SortBy = currentSortBy
+                                            })">@i</a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(Model.Tasks.HasNextPage ? "" : "disabled")">
+                                    <a class="page-link"
+                                       href="@Url.Action("Dashboard", "Task", new TaskFilterRequestModel {
+                                            Page = Model.Tasks.Page + 1,
+                                            PageSize = Model.Tasks.PageSize,
+                                            Status = currentStatus,
+                                            Priority = currentPriority,
+                                            SearchTerm = currentSearchTerm,
+                                            SortBy = currentSortBy
+                                        })">Next</a>
+                                </li>
+                            </ul>
+                        }
                     </nav>
-
-                    <!-- No tasks message -->
-                    <div id="noTasksMessage" class="text-center py-5" style="display: none;">
-                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No tasks found</h5>
-                        <p class="text-muted">Create your first task to get started!</p>
-                        <a href="@Url.Action("Create", "Task")" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Add New Task
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this task? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Styles {
-        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
-        @* @RenderSection("Styles", required: false) *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0xugL1S4QzNfJ/b/g2Y92A0o+dM/l8K9N7X5X6T5/d/p/2i/J/p/w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="~/css/dashboard.css" rel="stylesheet" />  
 }
 
 @section Scripts {
-    <script src="~/js/task-dashboard.js"></script>
+    <script>
+        // Function to submit the filter form for sorting
+        function submitSort() {
+            const form = document.getElementById('filterForm');
+            const sortByInput = document.createElement('input');
+            sortByInput.type = 'hidden';
+            sortByInput.name = 'sortBy';
+            sortByInput.value = document.getElementById('sortBy').value;
+            form.appendChild(sortByInput);
+            form.submit();
+        }
+
+        // Handle Clear Filters button
+        document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+            const form = document.getElementById('filterForm');
+            // Reset all input fields in the form
+            form.querySelectorAll('select, input[type="text"]').forEach(element => {
+                if (element.tagName === 'SELECT') {
+                    element.value = ''; // Set select to its first option (All)
+                } else if (element.type === 'text') {
+                    element.value = ''; // Clear text input
+                }
+            });
+            // Also reset sort by to default if needed, then submit
+            const sortBySelect = document.getElementById('sortBy');
+            if (sortBySelect) {
+                sortBySelect.value = 'dueDate';
+            }
+            form.submit();
+        });
+
+        // View mode switching
+        document.getElementById('gridViewBtn').addEventListener('click', function() {
+            document.cookie = "TaskViewMode=grid; path=/"; // Set cookie
+            window.location.reload(); // Reload page to apply view mode
+        });
+
+        document.getElementById('listViewBtn').addEventListener('click', function() {
+            document.cookie = "TaskViewMode=list; path=/"; // Set cookie
+            window.location.reload(); // Reload page to apply view mode
+        });
+
+        // Delete modal handler
+        let taskIdToDelete;
+        const deleteTaskModal = document.getElementById('deleteTaskModal');
+        if (deleteTaskModal) {
+            deleteTaskModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget; // Button that triggered the modal
+                taskIdToDelete = button.getAttribute('data-task-id'); // Extract task ID
+            });
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+                if (taskIdToDelete) {
+                    // Create a form to submit the POST request
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = `/Task/Delete/${taskIdToDelete}`; // Ensure this URL is correct
+
+                    document.body.appendChild(form);
+                    form.submit(); // Submit the form to trigger the delete action
+                }
+            });
+        }
+    </script>
 }
