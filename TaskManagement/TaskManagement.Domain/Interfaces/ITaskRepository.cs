@@ -9,6 +9,11 @@ namespace TaskManagement.Domain.Interfaces
     /// </summary>
     public interface ITaskRepository
     {
+        /// <summary>
+        /// Create task async
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
         Task<int> CreateTaskAsync(TaskManagement.Domain.Entities.Task task);
         Task<int> UpdateTaskAsync(TaskManagement.Domain.Entities.Task task);
         Task DeleteTaskAsync(int taskId);
