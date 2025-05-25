@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 
@@ -75,6 +76,110 @@ namespace TaskManagement.Infrastructure.Repositories
                 HasNextPage = page < totalPages,
                 HasPreviousPage = page > 1
             };
+        }
+
+        public async Task<UserStatsModel> GetUserStatsAsync(UserQueryRequest request)
+        {
+            var query = _context.Users.AsNoTracking().AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(u =>
+                    u.UserName.Contains(request.Search) ||
+                    u.Email.Contains(request.Search) ||
+                    u.FirstName.Contains(request.Search) ||
+                    u.LastName.Contains(request.Search));
+            }
+
+            if (request.UserId > 0)
+            {
+                query = query.Where(u => u.Id == request.UserId);
+            }
+
+            // Get current month for new users calculation
+            var now = DateTime.UtcNow;
+            var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            return new UserStatsModel
+            {
+                TotalUsers = await query.CountAsync(),
+                ActiveUsers = await query.Where(u => u.IsActive).CountAsync(),
+                InactiveUsers = await query.Where(u => !u.IsActive).CountAsync(),
+                
+            };
+        }
+
+        //public async Task<PagedResult<UserViewModel>> GetUsersAsync(int page, int pageSize, string search, string sortBy, bool isAsc)
+        //{
+        //    var query = _context.Users.AsNoTracking().AsQueryable();
+
+        //    // Apply search filter
+        //    if (!string.IsNullOrEmpty(search))
+        //    {
+        //        query = query.Where(u =>
+        //            u.UserName.Contains(search) ||
+        //            u.Email.Contains(search) ||
+        //            u.FirstName.Contains(search) ||
+        //            u.LastName.Contains(search));
+        //    }
+
+        //    // Apply sorting
+        //    query = sortBy switch
+        //    {
+        //        "Email" => isAsc ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
+        //        "CreatedAt" => isAsc ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+        //        _ => isAsc ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName)
+        //    };
+
+        //    // Get total count before pagination
+        //    var totalCount = await query.CountAsync();
+
+        //    // Apply pagination
+        //    var users = await query
+        //        .Skip((page - 1) * pageSize)
+        //        .Take(pageSize)
+        //        .Select(u => new UserViewModel
+        //        {
+        //            Id = u.Id,
+        //            UserName = u.UserName,
+        //            Email = u.Email,
+        //            FirstName = u.FirstName,
+        //            LastName = u.LastName,
+        //            IsActive = u.IsActive,
+        //            CreatedAt = u.CreatedAt
+        //        })
+        //        .ToListAsync();
+
+        //    return new PagedResult<UserViewModel>
+        //    {
+        //        Items = users,
+        //        Page = page,
+        //        PageSize = pageSize,
+        //        TotalCount = totalCount
+        //    };
+        //}
+
+        public async Task<bool> ManageUser(int userId, bool isActive)
+        {
+            try
+            {
+                var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
+                if (user == null)
+                    throw new ArgumentException("User not found");
+
+                user.IsActive = isActive;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
         }
 
     }

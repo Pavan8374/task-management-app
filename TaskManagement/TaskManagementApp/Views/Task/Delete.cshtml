@@ -1,0 +1,104 @@
+﻿@model TaskManagement.Application.Tasks.TaskViewModel
+
+@{
+    ViewData["Title"] = "Confirm Deletion";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Warning!</h4>
+                        <p>You are about to permanently delete this task. This action cannot be undone.</p>
+                        <hr>
+                        <p class="mb-0">Please confirm that you want to delete the following task:</p>
+                    </div>
+
+                    <div class="task-preview p-4 border rounded">
+                        <h4 class="text-danger">@Model.Title</h4>
+                        <div class="d-flex justify-content-between mt-3">
+                            <span class="badge @GetStatusBadgeClass(Model.TaskStatus)">@Model.TaskStatus</span>
+                            <span class="badge @GetPriorityBadgeClass(Model.TaskPriority)">@Model.TaskPriority</span>
+                            <span class="text-muted">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                Due: @Model.DueDate.ToString("MMM dd, yyyy")
+                            </span>
+                        </div>
+                        <p class="mt-3">@Model.Description</p>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light">
+                    <form asp-action="Delete" method="post" class="d-flex justify-content-between">
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <a href="@Url.Action("Details", "Task", new { id = Model.Id })" class="btn btn-success">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Details
+                        </a>
+
+                        <div>
+                            <a href="@Url.Action("Dashboard", "Task")" class="btn btn-secondary me-2">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-1"></i>Confirm Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success",
+            "In Progress" => "bg-info",
+            "Pending" => "bg-warning",
+            "On Hold" => "bg-secondary",
+            _ => "bg-primary"
+        };
+    }
+
+    string GetPriorityBadgeClass(string priority)
+    {
+        return priority switch
+        {
+            "High" => "bg-danger",
+            "Medium" => "bg-warning",
+            "Low" => "bg-success",
+            "Critical" => "bg-dark",
+            _ => "bg-primary"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .task-preview {
+            background-color: #fff8f8;
+            border-left: 4px solid #dc3545;
+        }
+
+        .card {
+            border-radius: 10px;
+        }
+
+        .card-header {
+            border-radius: 10px 10px 0 0 !important;
+        }
+    </style>
+}

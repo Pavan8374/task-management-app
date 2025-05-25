@@ -46,9 +46,7 @@ namespace TaskManagement.Application.Services
             if (task == null || task.IsDeleted) throw new Exception("Task not found.");
             if (task.UserId != userId) throw new UnauthorizedAccessException();
 
-            task.IsDeleted = true;
-            task.ModifiedAt = DateTime.UtcNow;
-            await _taskRepository.UpdateTaskAsync(task);
+            await _taskRepository.DeleteTaskAsync(taskId);
 
             return MapToViewModel(task);
         }

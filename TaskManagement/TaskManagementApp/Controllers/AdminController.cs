@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using TaskManagement.Application.DTOs.Users;
 using TaskManagement.Application.Interfaces;
+using TaskManagement.Domain.Models;
 using TaskManagementApp.Common;
 
 namespace TaskManagementApp.Controllers
@@ -15,54 +16,30 @@ namespace TaskManagementApp.Controllers
             _userService = userService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(UserQueryRequest userQuery)
         {
-            return View();
-        }
+            // Set default values if not provided
+            userQuery.Page = userQuery.Page == 0 ? 1 : userQuery.Page;
+            userQuery.PageSize = userQuery.PageSize == 0 ? 10 : userQuery.PageSize;
 
-        [HttpPost]
-        public async Task<IActionResult> GetAllUserByFilter([FromBody] UserQueryRequestModel userQuery)
-        {
-            try
+            var users = await _userService.GetUsersAsync(
+                userQuery.Page,
+                userQuery.PageSize,
+                userQuery.Search,
+                userQuery.SortBy,
+                userQuery.IsAsc
+            );
+
+            var userStats = await _userService.GetUserStatsAsync(userQuery);
+
+            var viewModel = new AdminDashboardViewModel
             {
-                var data = await _userService.GetUsersAsync(
-                    userQuery.Page,
-                    userQuery.PageSize,
-                    userQuery.Search,
-                    userQuery.SortBy,
-                    userQuery.IsAsc
-                );
+                Users = users,
+                UserStats = userStats,
+                CurrentQuery = userQuery
+            };
 
-                return Json(new { success = true, data = data });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetUserStatistics()
-        {
-            try
-            {
-                // Get all users to calculate statistics
-                var allUsers = await _userService.GetUsersAsync(1, int.MaxValue, null, null, true);
-
-                var statistics = new
-                {
-                    TotalUsers = allUsers.TotalCount,
-                    ActiveUsers = allUsers.Items.Count(u => u.IsActive),
-                    InactiveUsers = allUsers.Items.Count(u => !u.IsActive),
-                    NewUsersThisMonth = allUsers.Items.Count(u => u.CreatedAt >= DateTime.Now.AddMonths(-1))
-                };
-
-                return Json(new { success = true, data = statistics });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -70,22 +47,25 @@ namespace TaskManagementApp.Controllers
         {
             try
             {
-                // Assuming you have a method to toggle user status
-                // You might need to add this method to your IUserService
-                // await _userService.ToggleUserStatusAsync(model.UserId, model.IsActive);
+                var result = await _userService.ManageUser(model.UserId, model.IsActive);
 
-                return Json(new { success = true, message = "User status updated successfully" });
+                if (result)
+                {
+                    return Json(new { success = true, message = "User status updated successfully" });
+                }
+
+                return Json(new { success = false, message = "Something went wrong" });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
-    }
 
-    public class ToggleUserStatusModel
-    {
-        public int UserId { get; set; }
-        public bool IsActive { get; set; }
+        public class ToggleUserStatusModel
+        {
+            public int UserId { get; set; }
+            public bool IsActive { get; set; }
+        }
     }
 }
