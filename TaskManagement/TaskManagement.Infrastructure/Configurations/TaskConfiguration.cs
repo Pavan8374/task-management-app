@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Infrastructure.Configurations
 {

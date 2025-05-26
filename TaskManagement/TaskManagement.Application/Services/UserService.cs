@@ -4,9 +4,6 @@ using TaskManagement.Domain.Models;
 
 namespace TaskManagement.Application.Services
 {
-    /// <summary>
-    /// Public service
-    /// </summary>
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
@@ -33,6 +30,16 @@ namespace TaskManagement.Application.Services
         public async Task<bool> ManageUser(int userId, bool isActive)
         {
             return await _userRepository.ManageUser(userId, isActive);
+        }
+
+        /// <summary>
+        /// Check if user exists with phone number
+        /// </summary>
+        /// <param name="phoneNumber"></param>
+        /// <returns></returns>
+        public async Task<bool> IsUserExistsWithPhoneNumber(string phoneNumber)
+        {
+            return await _userRepository.IsUserExistsWithPhoneNumber(phoneNumber);
         }
     }
 }

@@ -16,16 +16,19 @@ namespace TaskManagement.Infrastructure.Identity
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserService _userService;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions)
+        public AuthService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IUserService userService)
         {
             _userManager = userManager;
             _jwtSettings = jwtOptions.Value;
+            _userService = userService;
         }
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
                 throw new UnauthorizedAccessException("Invalid credentials");
 
@@ -51,17 +54,21 @@ namespace TaskManagement.Infrastructure.Identity
         public async Task<AuthResponse> SignUpAsync(SignUpRequest request)
         {
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
-
             if(existingUser != null)
                 throw new UnauthorizedAccessException("An account found with this email already!");
+
+            if(await _userService.IsUserExistsWithPhoneNumber(request.PhoneNumber))
+                throw new UnauthorizedAccessException("An account found with this phone number already!");
 
             var user = new ApplicationUser()
             {
                 UserName = request.Email.Split('@')[0],
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                PhoneNumber = request.LastName,
-                Email = request.Email
+                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             var createResult = await _userManager.CreateAsync(user, request.Password);
@@ -95,7 +102,6 @@ namespace TaskManagement.Infrastructure.Identity
                 FullName = $"{user.FirstName} {user.LastName}",
                 UserName = user.UserName,
                 PhoneNumber = user.PhoneNumber,
-                //ValidTo = token.
             };
         }
 

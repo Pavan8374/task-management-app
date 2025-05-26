@@ -29,8 +29,6 @@ namespace TaskManagement.Application.Tasks
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ModifiedAt { get; set; }
-
-        // Navigation properties
         public string UserName { get; set; }
         public List<TaskImageViewModel> TaskImages { get; set; } = new List<TaskImageViewModel>();
     }

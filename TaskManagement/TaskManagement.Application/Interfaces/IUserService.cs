@@ -16,5 +16,12 @@ namespace TaskManagement.Application.Interfaces
 
         Task<UserStatsModel> GetUserStatsAsync(UserQueryRequest request);
         Task<bool> ManageUser(int userId, bool isActive);
+
+        /// <summary>
+        /// Check if user exists with phone number
+        /// </summary>
+        /// <param name="phoneNumber"></param>
+        /// <returns></returns>
+        Task<bool> IsUserExistsWithPhoneNumber(string phoneNumber);
     }
 }

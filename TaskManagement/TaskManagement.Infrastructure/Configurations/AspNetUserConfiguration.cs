@@ -32,8 +32,6 @@ namespace TaskManagement.Infrastructure.Configurations
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("getutcdate()");
 
-            //var hasher = new PasswordHasher<ApplicationUser>();
-
             var adminUser = new ApplicationUser
             {
                 Id = 1,

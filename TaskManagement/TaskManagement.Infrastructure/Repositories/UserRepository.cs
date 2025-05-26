@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 
@@ -121,61 +120,11 @@ namespace TaskManagement.Infrastructure.Repositories
                 TotalUsers = await query.CountAsync(),
                 ActiveUsers = await query.Where(u => u.IsActive).CountAsync(),
                 InactiveUsers = await query.Where(u => !u.IsActive).CountAsync(),
-                TotalTasks  = taskstats.TotalTasks,
-                CompletedTasks = taskstats.CompletedTasks,
-                PendingTasks = taskstats.PendingTasks,
+                TotalTasks  = taskstats?.TotalTasks ?? 0,
+                CompletedTasks = taskstats?.CompletedTasks ?? 0,
+                PendingTasks = taskstats?.PendingTasks ?? 0,
             };
         }
-
-        //public async Task<PagedResult<UserViewModel>> GetUsersAsync(int page, int pageSize, string search, string sortBy, bool isAsc)
-        //{
-        //    var query = _context.Users.AsNoTracking().AsQueryable();
-
-        //    // Apply search filter
-        //    if (!string.IsNullOrEmpty(search))
-        //    {
-        //        query = query.Where(u =>
-        //            u.UserName.Contains(search) ||
-        //            u.Email.Contains(search) ||
-        //            u.FirstName.Contains(search) ||
-        //            u.LastName.Contains(search));
-        //    }
-
-        //    // Apply sorting
-        //    query = sortBy switch
-        //    {
-        //        "Email" => isAsc ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
-        //        "CreatedAt" => isAsc ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
-        //        _ => isAsc ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName)
-        //    };
-
-        //    // Get total count before pagination
-        //    var totalCount = await query.CountAsync();
-
-        //    // Apply pagination
-        //    var users = await query
-        //        .Skip((page - 1) * pageSize)
-        //        .Take(pageSize)
-        //        .Select(u => new UserViewModel
-        //        {
-        //            Id = u.Id,
-        //            UserName = u.UserName,
-        //            Email = u.Email,
-        //            FirstName = u.FirstName,
-        //            LastName = u.LastName,
-        //            IsActive = u.IsActive,
-        //            CreatedAt = u.CreatedAt
-        //        })
-        //        .ToListAsync();
-
-        //    return new PagedResult<UserViewModel>
-        //    {
-        //        Items = users,
-        //        Page = page,
-        //        PageSize = pageSize,
-        //        TotalCount = totalCount
-        //    };
-        //}
 
         public async Task<bool> ManageUser(int userId, bool isActive)
         {
@@ -196,6 +145,17 @@ namespace TaskManagement.Infrastructure.Repositories
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Check if user exists with phone number
+        /// </summary>
+        /// <param name="phoneNumber"></param>
+        /// <returns></returns>
+        public async Task<bool> IsUserExistsWithPhoneNumber(string phoneNumber)
+        {
+            var lower = phoneNumber.ToLower();
+            return await _context.Users.AsNoTracking().AnyAsync(x => x.PhoneNumber.ToLower() == lower);
         }
 
     }

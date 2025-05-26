@@ -11,7 +11,6 @@ using TaskManagementApp.Models.DashBoard;
 
 namespace TaskManagementApp.Controllers
 {
-    //[Authorize]
     public class TaskController : BaseController
     {
         private readonly ITaskService _taskService;
@@ -31,7 +30,7 @@ namespace TaskManagementApp.Controllers
             try
             {
                 var stats = await _taskService.GetTaskStatsAsync(GetCurrentUserId());
-                var tasks = await _taskService.GetFilteredTasksAsync(GetCurrentUserId(), model); // This now returns PagedResult<TaskResponseModel>
+                var tasks = await _taskService.GetFilteredTasksAsync(GetCurrentUserId(), model); 
 
                 var viewModel = new DashboardViewModel
                 {
@@ -42,8 +41,8 @@ namespace TaskManagementApp.Controllers
                     OverdueTasks = stats.OverdueTasks,
                     StatusOptions = new List<string> { "Pending", "In Progress", "Completed", "On Hold" },
                     PriorityOptions = new List<string> { "Low", "Medium", "High", "Critical" },
-                    Tasks = tasks, // Assign the PagedResult<TaskResponseModel> directly
-                    CurrentFilter = model // Assign the current filter model
+                    Tasks = tasks, 
+                    CurrentFilter = model 
                 };
 
                 return View(viewModel);
@@ -51,7 +50,6 @@ namespace TaskManagementApp.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Error loading dashboard: " + ex.Message;
-                // Ensure a valid DashboardViewModel is returned even on error
                 return View(new DashboardViewModel
                 {
                     StatusOptions = new List<string> { "Pending", "In Progress", "Completed", "On Hold" },
@@ -66,13 +64,11 @@ namespace TaskManagementApp.Controllers
         {
             try
             {
-                // Set default values if not provided
                 request.Page = request.Page == 0 ? 1 : request.Page;
                 request.PageSize = request.PageSize == 0 ? 10 : request.PageSize;
 
                 var tasks = await _taskService.GetFilteredTasksAsync(userId, request);
-                var user = await _userManager.FindByIdAsync(userId.ToString()); // Implement this if you don't have it
-
+                var user = await _userManager.FindByIdAsync(userId.ToString()); 
                 var viewModel = new UserTasksViewModel
                 {
                     Tasks = tasks,
@@ -102,15 +98,13 @@ namespace TaskManagementApp.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // Initialize model with default values if needed
             var model = new CreateTaskRequest
             {
-                DueDate = DateTime.Now.AddDays(1).Date.AddHours(9) // Default to tomorrow at 9 AM
+                DueDate = DateTime.Now.AddDays(1).Date.AddHours(9)
             };
             return View(model);
         }
 
-        //[Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTaskRequest request)
@@ -119,7 +113,6 @@ namespace TaskManagementApp.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    // Return the view with validation errors
                     return View(request);
                 }
                 var task = await _taskService.CreateTaskAsync(request, GetCurrentUserId());
@@ -138,7 +131,6 @@ namespace TaskManagementApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
-            // Initialize model with default values if needed
             var task = await _taskService.GetTaskByIdAsync(id);
             var response = new UpdateTaskRequest()
             {
@@ -213,7 +205,6 @@ namespace TaskManagementApp.Controllers
             }
         }
 
-        // POST: Task/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -237,7 +228,6 @@ namespace TaskManagementApp.Controllers
         {
             try
             {
-                //var tasks = GetDummyTasks();
                 var task = await _taskService.GetTaskByIdAsync(id);
 
                 if (task == null)

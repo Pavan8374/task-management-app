@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using TaskManagement.Application.DTOs.Users;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Domain.Models;
@@ -18,7 +17,6 @@ namespace TaskManagementApp.Controllers
 
         public async Task<IActionResult> Index(UserQueryRequest userQuery)
         {
-            // Set default values if not provided
             userQuery.Page = userQuery.Page == 0 ? 1 : userQuery.Page;
             userQuery.PageSize = userQuery.PageSize == 0 ? 10 : userQuery.PageSize;
 

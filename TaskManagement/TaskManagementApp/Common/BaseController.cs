@@ -13,25 +13,22 @@ namespace TaskManagementApp.Common
 
         protected int GetCurrentUserId()
         {
-            // First try to get from claims (if JWT authentication is working)
             var userIdClaim = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int claimUserId))
             {
                 return claimUserId;
             }
 
-            // Fallback to session
             var sessionUserId = HttpContext.Session.GetString("UserId");
             if (!string.IsNullOrEmpty(sessionUserId) && int.TryParse(sessionUserId, out int sessionUserIdInt))
             {
                 return sessionUserIdInt;
             }
 
-            return 0; // or throw an exception if user must be authenticated
+            return 0; 
         }
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            // Set common ViewData
             ViewData["CurrentUserEmail"] = CurrentUserEmail;
             ViewData["CurrentUserRole"] = CurrentUserRole;
             ViewData["IsAuthenticated"] = IsAuthenticated;
@@ -60,7 +57,7 @@ namespace TaskManagementApp.Common
             {
                 return RedirectToAction("Login", "Auth");
             }
-            return null; // User is authenticated
+            return null; 
         }
 
         protected IActionResult RequireRole(params string[] requiredRoles)
@@ -72,7 +69,7 @@ namespace TaskManagementApp.Common
             {
                 return RedirectToRoleBasedDashboard();
             }
-            return null; // User has required role
+            return null; 
         }
 
     }
